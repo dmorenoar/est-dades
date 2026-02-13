@@ -1,415 +1,365 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  Trophy, 
-  Zap, 
-  Flame, 
-  Skull, 
-  Star, 
-  Sword, 
-  RefreshCcw, 
-  ChevronRight, 
-  BookOpen,
-  Target,
-  ShieldCheck,
-  BrainCircuit,
-  Wind
-} from 'lucide-react';
-
-const QUESTIONS = [
-  {
-    id: 1,
-    category: 'Teoria: Llistes',
-    question: "Quina d'aquestes opcions defineix millor la naturalesa d'una llista?",
-    options: ["Immutable i sense ordre", "Ordenada, indexada i mutable", "Només guarda textos i és fixa", "No permet duplicats"],
-    correct: 1,
-    explanation: "Com un pergamí que pots escriure i esborrar, les llistes permeten canvis i mantenen l'ordre dels teus guerrers!"
-  },
-  {
-    id: 2,
-    category: 'Teoria: Tuples',
-    question: "Què vol dir exactament que una tupla sigui 'immutable'?",
-    options: ["Que no es pot llegir", "Que només pot tenir un element", "Que un cop creada, no es pot modificar", "Que s'esborra sola al cap d'un temps"],
-    correct: 2,
-    explanation: "És com un segell prohibit: un cop posat, ningú pot canviar el que hi ha escrit a dins!"
-  },
-  {
-    id: 3,
-    category: 'Teoria: Diccionaris',
-    question: "Com s'accedeix a un element dins d'un diccionari?",
-    options: ["Mitjançant la seva posició numèrica", "Mitjançant una 'clau' (normalment un text)", "L'atzar decideix què retorna", "No es pot accedir un cop creat"],
-    correct: 1,
-    explanation: "És com invocar un esperit: has de saber el seu nom (clau) per cridar-lo!"
-  },
-  {
-    id: 4,
-    category: 'Teoria: Conjunts',
-    question: "Què passa si intentes posar tres vegades el mateix element en un 'set'?",
-    options: ["Es guarden els tres", "El programa peta amb un DuplicateError", "Només se'n guarda un (ignora els duplicats)", "Es multipliquen i en surten sis"],
-    correct: 2,
-    explanation: "El set és com un mestre que no tolera repeticions innecessàries: només val el primer cop!"
-  },
-  {
-    id: 5,
-    category: 'Sintaxi: Tuples',
-    question: "Quin d'aquests exemples és realment una tupla d'un sol element?",
-    options: ["t = (5)", "t = [5]", "t = (5,)", "t = {5}"],
-    correct: 2,
-    explanation: "Sense la coma final, Python es pensa que és un simple número entre parèntesis. Detalls de ninja!"
-  },
-  {
-    id: 6,
-    category: 'Teoria: Llistes',
-    question: "Si una llista té 5 elements, quin és l'índex del primer i l'últim?",
-    options: ["1 i 5", "0 i 4", "0 i 5", "1 i 4"],
-    correct: 1,
-    explanation: "Recorda el codi dels Shinobi: tot comença al zero!"
-  },
-  {
-    id: 7,
-    category: 'Teoria: Diccionaris',
-    question: "Per què és millor usar el mètode `.get()` que l'accés directe `dict['clau']`?",
-    options: ["És més ràpid", "Retorna None si la clau no existeix en comptes de donar error", "Permet esborrar el diccionari", "No hi ha diferència real"],
-    correct: 1,
-    explanation: "`.get()` és la teva tècnica de substitució: si t'ataquen amb una clau inexistent, evites el dany (error)!"
-  },
-  {
-    id: 8,
-    category: 'Operacions: Conjunts',
-    question: "Vols saber quins elements estan en un conjunt PERÒ NO en l'altre. Què uses?",
-    options: ["| (Unió)", "& (Intersecció)", "- (Diferència)", "^ (Diferència simètrica)"],
-    correct: 2,
-    explanation: "L'operador '-' resta el poder de l'enemic al teu conjunt original!"
-  },
-  {
-    id: 9,
-    category: 'Teoria: Diccionaris',
-    question: "Què retorna el mètode `.items()` d'un diccionari?",
-    options: ["Només les claus", "Només els valors", "Parells de (clau, valor)", "Una llista buida"],
-    correct: 2,
-    explanation: "Et dóna la fitxa completa del personatge: el seu nom i el seu poder!"
-  },
-  {
-    id: 10,
-    category: 'Teoria: Conjunts',
-    question: "Quina d'aquestes afirmacions sobre els conjunts (sets) és FALSA?",
-    options: ["Són mutables", "Mantenen l'ordre d'inserció perfectament", "No admeten duplicats", "Són útils per a operacions matemàtiques"],
-    correct: 1,
-    explanation: "Els conjunts són caòtics! L'ordre pot canviar a cada execució, com un combat real."
-  },
-  {
-    id: 11,
-    category: 'Mètodes: Llistes',
-    question: "Diferència entre `.append()` i `.insert()`:",
-    options: ["Append afegeix al final, insert en una posició específica", "Són sinònims", "Insert és només per a llistes buides", "Append esborra l'últim element abans d'afegir"],
-    correct: 0,
-    explanation: "Append és per a la cua de la tripulació; Insert és per posar el capità on tu vulguis!"
-  },
-  {
-    id: 12,
-    category: 'Errors: Memòria',
-    question: "Quin error obtindràs si intentes fer `meva_tupla[0] = 'nou valor'`?",
-    options: ["KeyError", "TypeError", "ValueError", "ChaosError"],
-    correct: 1,
-    explanation: "Com que és una tupla, no pots canviar el tipus de dada ni el seu contingut. TypeError!"
-  },
-  {
-    id: 13,
-    category: 'Teoria: Resum',
-    question: "Quina estructura és la millor per representar un objecte amb propietats (nom, edat, estil)?",
-    options: ["list", "tuple", "dict", "set"],
-    correct: 2,
-    explanation: "El diccionari és la fitxa oficial de cada personatge!"
-  },
-  {
-    id: 14,
-    category: 'Mètodes: Conjunts',
-    question: "Diferència entre `.remove()` i `.discard()` en un conjunt:",
-    options: ["No hi ha diferència", "Discard no dóna error si l'element no hi és; Remove sí", "Remove és més ràpid", "Discard només serveix per a números"],
-    correct: 1,
-    explanation: "Discard és un ninja silenciós; si no troba l'objectiu, marxa sense fer soroll."
-  },
-  {
-    id: 15,
-    category: 'Teoria: Llistes',
-    question: "Què fa l'operador 'in' (ex: `'Luffy' in pirates`)?",
-    options: ["Afegeix l'element", "Esborra l'element", "Comprova si l'element existeix a l'estructura", "Canvia el nom de l'element"],
-    correct: 2,
-    explanation: "És el teu sentit de detecció per saber si un enemic o aliat és a la zona!"
-  }
-];
-
-const BackgroundAnime = () => {
-  // Use useMemo to stabilize random values and avoid flickering on rerender
-  const speedLinesData = useMemo(() => 
-    [...Array(20)].map(() => ({
-      left: `${Math.random() * 100}%`,
-      duration: 0.5 + Math.random(),
-      delay: Math.random() * 2
-    })), []);
-
-  const symbolsData = useMemo(() => 
-    ['{}', '[]', '()', 'in', 'if', 'for', '=>'].map((sym) => ({
-      text: sym,
-      duration: 3 + Math.random() * 4,
-      delay: Math.random() * 2
-    })), []);
-
-  return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-      {/* Speed Lines Effect */}
-      <div className="absolute inset-0 opacity-10">
-        {speedLinesData.map((line, i) => (
-          <div 
-            key={i} 
-            className="absolute bg-white"
-            style={{
-              width: '2px',
-              height: '100vh',
-              left: line.left,
-              top: '-100vh',
-              transform: 'rotate(45deg)',
-              // Fix: Separate animation properties to avoid shorthand/longhand conflicts
-              animationName: 'speedLine',
-              animationDuration: `${line.duration}s`,
-              animationTimingFunction: 'linear',
-              animationIterationCount: 'infinite',
-              animationDelay: `${line.delay}s`
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Floating Ninja Symbols */}
-      <div className="absolute inset-0 opacity-20 flex flex-wrap justify-around items-center">
-        {symbolsData.map((sym, i) => (
-          <div 
-            key={i}
-            className="text-orange-500 font-mono text-6xl font-bold animate-pulse"
-            style={{
-              // Fix: Separate animation properties to avoid shorthand/longhand conflicts
-              animationName: 'float',
-              animationDuration: `${sym.duration}s`,
-              animationTimingFunction: 'ease-in-out',
-              animationIterationCount: 'infinite',
-              animationDelay: `${sym.delay}s`
-            }}
-          >
-            {sym.text}
-          </div>
-        ))}
-      </div>
-
-      {/* Chakra Glow */}
-      <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-orange-600/20 rounded-full blur-[100px] animate-pulse"></div>
-      <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] animate-pulse"></div>
-
-      <style>{`
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dojo Python: Rànquing Ninja</title>
+    <!-- Tailwind CSS per als estils -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React i Babel per executar JSX al navegador -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
         @keyframes speedLine {
-          0% { transform: translateY(0) rotate(45deg); opacity: 0; }
-          50% { opacity: 1; }
-          100% { transform: translateY(200vh) rotate(45deg); opacity: 0; }
+            0% { transform: translateY(0) rotate(45deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(200vh) rotate(45deg); opacity: 0; }
         }
         @keyframes float {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          50% { transform: translateY(-30px) rotate(10deg); }
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(10deg); }
         }
-      `}</style>
-    </div>
-  );
-};
-
-export default function App() {
-  const [step, setStep] = useState('home');
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [score, setScore] = useState(0);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(null);
-
-  const startQuiz = () => {
-    setStep('quiz');
-    setCurrentQuestion(0);
-    setScore(0);
-    setShowFeedback(false);
-    setSelectedOption(null);
-  };
-
-  const handleOptionSelect = (index) => {
-    if (showFeedback) return;
-    setSelectedOption(index);
-    setShowFeedback(true);
-    if (index === QUESTIONS[currentQuestion].correct) {
-      setScore(s => s + 1);
-    }
-  };
-
-  const nextQuestion = () => {
-    if (currentQuestion + 1 < QUESTIONS.length) {
-      setCurrentQuestion(c => c + 1);
-      setShowFeedback(false);
-      setSelectedOption(null);
-    } else {
-      setStep('result');
-    }
-  };
-
-  const getRank = () => {
-    const p = (score / QUESTIONS.length) * 100;
-    if (p === 100) return { title: "HOKAGE / REI DELS PIRATES", color: "text-orange-500", desc: "Has assolit el domini absolut de la teoria!", icon: <Trophy className="w-20 h-20 text-orange-500 drop-shadow-[0_0_15px_rgba(249,115,22,0.8)]" /> };
-    if (p >= 85) return { title: "JONIN D'ELIT", color: "text-red-500", desc: "La teva base teòrica és indestructible.", icon: <Flame className="w-20 h-20 text-red-500" /> };
-    if (p >= 60) return { title: "CHUNIN", color: "text-blue-500", desc: "Bon nivell, però encara et poden sorprendre.", icon: <Sword className="w-20 h-20 text-blue-500" /> };
-    if (p >= 30) return { title: "GENIN", color: "text-green-500", desc: "Llegeix el pergamí del README un cop més.", icon: <Target className="w-20 h-20 text-green-500" /> };
-    return { title: "ESPERIT MALIGNE", color: "text-purple-600", desc: "T'has perdut en el camí del codi...", icon: <Skull className="w-20 h-20 text-purple-600" /> };
-  };
-
-  const progress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
-
-  return (
-    <div className="min-h-screen bg-[#0a0a12] text-slate-100 font-sans p-4 flex items-center justify-center overflow-hidden relative">
-      <BackgroundAnime />
-      
-      <div className="relative z-10 w-full flex flex-col items-center">
-        
-        {step === 'home' && (
-          <div className="max-w-xl w-full bg-slate-900/80 backdrop-blur-md border-t-4 border-orange-500 rounded-3xl p-10 text-center shadow-[0_20px_60px_rgba(0,0,0,0.8)] border border-slate-800 animate-in zoom-in duration-500">
-            <div className="inline-block p-5 bg-orange-500 rounded-full mb-6 shadow-[0_0_25px_rgba(249,115,22,0.5)]">
-              <BrainCircuit className="w-14 h-14 text-white" />
-            </div>
-            <h1 className="text-5xl font-black mb-4 tracking-tighter italic uppercase text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400">Dojo Teòric</h1>
-            <p className="text-slate-400 mb-8 text-xl font-medium">
-              Supera les 15 proves del destí per ascendir en el rànquing Ninja de Python.
-            </p>
-            <button 
-              onClick={startQuiz}
-              className="w-full bg-gradient-to-r from-orange-600 to-orange-400 hover:from-orange-500 hover:to-orange-300 text-white font-black py-5 px-8 rounded-2xl text-2xl transition-all flex items-center justify-center gap-3 group shadow-[0_10px_30px_rgba(249,115,22,0.4)] active:scale-95"
-            >
-              ENTRAR AL DOJO <ChevronRight className="group-hover:translate-x-2 transition-transform w-8 h-8" />
-            </button>
-          </div>
-        )}
-
-        {step === 'quiz' && (
-          <div className="max-w-2xl w-full animate-in fade-in slide-in-from-right-8 duration-500">
-            {/* Progress Header */}
-            <div className="mb-6 flex items-center gap-4 bg-slate-900/60 backdrop-blur-sm p-4 rounded-2xl border border-slate-800 shadow-xl">
-              <div className="flex-1 h-4 bg-slate-800 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-orange-600 via-yellow-400 to-orange-500 transition-all duration-700 shadow-[0_0_15px_rgba(249,115,22,0.6)]"
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
-              <span className="font-mono text-orange-400 font-black text-lg">
-                {currentQuestion + 1}/{QUESTIONS.length}
-              </span>
-            </div>
-
-            {/* Question Card */}
-            <div className="bg-slate-900/90 backdrop-blur-md rounded-3xl border-b-[12px] border-slate-950 p-6 md:p-12 shadow-2xl relative overflow-hidden border border-slate-800">
-              <div className="absolute -top-10 -left-10 opacity-5 pointer-events-none">
-                <Wind className="w-64 h-64 text-white animate-pulse" />
-              </div>
-
-              <div className="mb-6 flex justify-between items-center">
-                <span className="px-4 py-1.5 bg-orange-600/20 border border-orange-500/40 text-orange-400 rounded-lg text-xs font-black uppercase tracking-[0.2em] shadow-inner">
-                  {QUESTIONS[currentQuestion].category}
-                </span>
-                {showFeedback && (
-                   <span className={`font-black text-xl italic ${selectedOption === QUESTIONS[currentQuestion].correct ? 'text-green-500' : 'text-red-500'}`}>
-                      {selectedOption === QUESTIONS[currentQuestion].correct ? "CRITICAL HIT!" : "MISS!"}
-                   </span>
-                )}
-              </div>
-
-              <h2 className="text-3xl font-extrabold mb-10 leading-tight text-white drop-shadow-md">
-                {QUESTIONS[currentQuestion].question}
-              </h2>
-
-              <div className="grid gap-4">
-                {QUESTIONS[currentQuestion].options.map((option, idx) => {
-                  let stateClass = "border-slate-800 bg-slate-800/40 hover:border-orange-500 hover:bg-slate-800/80";
-                  if (showFeedback) {
-                    if (idx === QUESTIONS[currentQuestion].correct) stateClass = "border-green-500 bg-green-500/10 text-green-300 ring-4 ring-green-500/20";
-                    else if (idx === selectedOption) stateClass = "border-red-600 bg-red-600/10 text-red-400 ring-4 ring-red-600/20";
-                    else stateClass = "opacity-30 border-slate-900 grayscale";
-                  }
-
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => handleOptionSelect(idx)}
-                      disabled={showFeedback}
-                      className={`p-6 rounded-2xl border-2 text-left transition-all font-bold text-lg flex justify-between items-center group ${stateClass}`}
-                    >
-                      <span>{option}</span>
-                      {showFeedback && idx === QUESTIONS[currentQuestion].correct && <ShieldCheck className="text-green-500 shrink-0 w-8 h-8" />}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {showFeedback && (
-                <div className="mt-10 animate-in slide-in-from-bottom-6 duration-500">
-                  <div className={`p-6 rounded-2xl border-l-8 ${selectedOption === QUESTIONS[currentQuestion].correct ? 'border-green-500 bg-green-500/5' : 'border-blue-500 bg-blue-500/5'} shadow-xl`}>
-                    <p className="text-lg italic text-slate-200">
-                      <span className="font-black text-orange-500 uppercase not-italic mr-2">Mestre:</span>
-                      {QUESTIONS[currentQuestion].explanation}
-                    </p>
-                  </div>
-                  <button 
-                    onClick={nextQuestion}
-                    className="w-full mt-8 bg-white text-slate-900 font-black py-5 rounded-2xl flex items-center justify-center gap-2 hover:bg-orange-500 hover:text-white transition-all shadow-[0_10px_40px_rgba(255,255,255,0.1)] active:scale-95 text-xl"
-                  >
-                    {currentQuestion + 1 === QUESTIONS.length ? "FINALITZAR COMBAT" : "PROPERA TÈCNICA"} <ChevronRight className="w-6 h-6" />
-                  </button>
-                </div>
-              )}
-            </div>
-            
-            <div className="mt-8 flex justify-center">
-               <div className="bg-slate-900/80 backdrop-blur-md px-8 py-3 rounded-full border border-slate-800 flex items-center gap-4 shadow-2xl">
-                  <Star className="w-6 h-6 text-yellow-400 fill-yellow-400 animate-spin-slow" />
-                  <span className="font-black text-2xl tracking-tighter">KI: {score * 100}</span>
-               </div>
-            </div>
-          </div>
-        )}
-
-        {step === 'result' && (
-          <div className="max-w-xl w-full bg-slate-900/90 backdrop-blur-lg border border-slate-800 rounded-[3rem] p-12 text-center shadow-2xl relative overflow-hidden animate-in zoom-in duration-700">
-            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-600 via-yellow-400 to-orange-600 shadow-[0_0_20px_rgba(249,115,22,0.8)]"></div>
-            
-            <div className="flex justify-center mb-8">
-              <div className="p-8 bg-slate-800 rounded-full border-4 border-slate-700 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-                {getRank().icon}
-              </div>
-            </div>
-
-            <h2 className="text-lg font-black tracking-[0.5em] text-slate-500 uppercase mb-3">Verdict del Dojo</h2>
-            <h3 className={`text-5xl font-black mb-6 ${getRank().color} drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] italic`}>{getRank().title}</h3>
-            
-            <div className="bg-slate-950/50 rounded-3xl p-10 mb-10 border border-slate-800 shadow-inner">
-              <div className="text-7xl font-black text-white mb-4 tracking-tighter">{score} <span className="text-3xl text-slate-600">/ {QUESTIONS.length}</span></div>
-              <p className="text-slate-300 text-xl font-medium leading-relaxed italic">"{getRank().desc}"</p>
-            </div>
-
-            <button 
-              onClick={startQuiz}
-              className="w-full bg-white text-slate-900 font-black py-6 rounded-3xl flex items-center justify-center gap-4 hover:bg-orange-500 hover:text-white transition-all shadow-2xl active:scale-95 text-2xl"
-            >
-              <RefreshCcw className="w-7 h-7" /> TORNAR A L'ACADÈMIA
-            </button>
-          </div>
-        )}
-      </div>
-
-      <style>{`
         .animate-spin-slow {
-          animation: spin 6s linear infinite;
+            animation: spin 6s linear infinite;
         }
         @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
-      `}</style>
-    </div>
-  );
-}
+    </style>
+</head>
+<body class="bg-[#0a0a12]">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo } = React;
+
+        // Icons definits manualment per evitar errors de CDN de Lucide
+        const Icon = ({ name, className = "w-6 h-6" }) => {
+            const icons = {
+                Trophy: <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55.47.98.97 1.21C12.23 18.72 13.5 19 15 19s2.77-.28 4.03-.79c.5-.23.97-.66.97-1.21v-2.34c0-1.03-.69-1.93-1.67-2.14l-1.06-.23a10.02 10.02 0 0 1-5.27-5.27l-.23-1.06a2.19 2.19 0 0 0-2.14-1.67H9.34c-1.03 0-1.93.69-2.14 1.67l-.23 1.06a10.02 10.02 0 0 1-5.27 5.27l-1.06.23a2.19 2.19 0 0 0-1.67 2.14z"/>,
+                Zap: <path d="M13 2 L3 14h9l-1 8 10-12h-9l1-8z"/>,
+                Flame: <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>,
+                Skull: <path d="m12.5 17-.5-1-.5 1h1zM15 22a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v1a1 1 0 0 0 1 1h6zM8 10.5a2.5 2.5 0 1 0 5 0 2.5 2.5 0 1 0-5 0zM11 10.5a2.5 2.5 0 1 0 5 0 2.5 2.5 0 1 0-5 0zM12 2a7 7 0 0 0-7 7v3a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3V9a7 7 0 0 0-7-7z"/>,
+                Star: <path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>,
+                Sword: <path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2"/>,
+                RefreshCcw: <path d="M1 4v6h6M23 20v-6h-6M20.49 9A9 9 0 0 0 5.64 5.64L1 10M3.51 15a9 9 0 0 0 14.85 3.36L23 14"/>,
+                ChevronRight: <path d="m9 18 6-6-6-6"/>,
+                BrainCircuit: <path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .52 8.105V20a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a4 4 0 0 0 .52-8.105 4 4 0 0 0-2.526-5.77A3 3 0 1 0 12 5zM9 13v1M15 13v1M12 11v1"/>,
+                Wind: <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2M9.6 4.6A2 2 0 1 1 11 8H2M12.6 19.4A2 2 0 1 0 14 16H2"/>,
+                ShieldCheck: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4"/>,
+                Target: <React.Fragment><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></React.Fragment>
+            };
+            return (
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    {icons[name] || null}
+                </svg>
+            );
+        };
+
+        const QUESTIONS = [
+            {
+                id: 1,
+                category: 'Teoria: Llistes',
+                question: "Quina d'aquestes opcions defineix millor la naturalesa d'una llista?",
+                options: ["Immutable i sense ordre", "Ordenada, indexada i mutable", "Només guarda textos i és fixa", "No permet duplicats"],
+                correct: 1,
+                explanation: "Com un pergamí que pots escriure i esborrar, les llistes permeten canvis i mantenen l'ordre dels teus guerrers!"
+            },
+            {
+                id: 2,
+                category: 'Teoria: Tuples',
+                question: "Què vol dir exactament que una tupla sigui 'immutable'?",
+                options: ["Que no es pot llegir", "Que només pot tenir un element", "Que un cop creada, no es pot modificar", "Que s'esborra sola al cap d'un temps"],
+                correct: 2,
+                explanation: "És com un segell prohibit: un cop posat, ningú pot canviar el que hi ha escrit a dins!"
+            },
+            {
+                id: 3,
+                category: 'Teoria: Diccionaris',
+                question: "Com s'accedeix a un element dins d'un diccionari?",
+                options: ["Mitjançant la seva posició numèrica", "Mitjançant una 'clau' (normalment un text)", "L'atzar decideix què retorna", "No es pot accedir un cop creat"],
+                correct: 1,
+                explanation: "És com invocar un esperit: has de saber el seu nom (clau) per cridar-lo!"
+            },
+            {
+                id: 4,
+                category: 'Teoria: Conjunts',
+                question: "Què passa si intentes posar tres vegades el mateix element en un 'set'?",
+                options: ["Es guarden els tres", "El programa peta amb un DuplicateError", "Només se'n guarda un (ignora els duplicats)", "Es multipliquen i en surten sis"],
+                correct: 2,
+                explanation: "El set és com un mestre que no tolera repeticions innecessàries: només val el primer cop!"
+            },
+            {
+                id: 5,
+                category: 'Sintaxi: Tuples',
+                question: "Quin d'aquests exemples és realment una tupla d'un sol element?",
+                options: ["t = (5)", "t = [5]", "t = (5,)", "t = {5}"],
+                correct: 2,
+                explanation: "La coma és vital! Sense ella, Python es pensa que és un simple número entre parèntesis."
+            },
+            {
+                id: 6,
+                category: 'Teoria: Llistes',
+                question: "Si una llista té 5 elements, quin és l'índex del primer i l'últim?",
+                options: ["1 i 5", "0 i 4", "0 i 5", "1 i 4"],
+                correct: 1,
+                explanation: "Recorda el codi dels Shinobi: tot comença al zero!"
+            },
+            {
+                id: 7,
+                category: 'Teoria: Diccionaris',
+                question: "Per què és millor usar el mètode `.get()` que l'accés directe `dict['clau']`?",
+                options: ["És més ràpid", "Retorna None si la clau no existeix", "Permet esborrar el diccionari", "No hi ha diferència real"],
+                correct: 1,
+                explanation: "`.get()` és la teva tècnica de substitució per evitar errors!"
+            },
+            {
+                id: 8,
+                category: 'Operacions: Conjunts',
+                question: "Vols saber quins elements estan en un conjunt PERÒ NO en l'altre. Què uses?",
+                options: ["| (Unió)", "& (Intersecció)", "- (Diferència)", "^ (Diferència simètrica)"],
+                correct: 2,
+                explanation: "L'operador '-' resta el poder de l'enemic al teu conjunt original!"
+            },
+            {
+                id: 9,
+                category: 'Teoria: Diccionaris',
+                question: "Què retorna el mètode `.items()` d'un diccionari?",
+                options: ["Només les claus", "Només els valors", "Parells de (clau, valor)", "Una llista buida"],
+                correct: 2,
+                explanation: "Et dóna la fitxa completa del personatge!"
+            },
+            {
+                id: 10,
+                category: 'Teoria: Conjunts',
+                question: "Quina d'aquestes afirmacions sobre els conjunts (sets) és FALSA?",
+                options: ["Són mutables", "Mantenen l'ordre d'inserció", "No admeten duplicats", "Són útils per a matemàtiques"],
+                correct: 1,
+                explanation: "Els conjunts són caòtics! L'ordre pot canviar."
+            },
+            {
+                id: 11,
+                category: 'Mètodes: Llistes',
+                question: "Diferència entre `.append()` i `.insert()`:",
+                options: ["Append al final, insert en posició específica", "Són sinònims", "Insert és per llistes buides", "Append esborra l'últim"],
+                correct: 0,
+                explanation: "Append és per a la cua; Insert és per posar el capità on vulguis!"
+            },
+            {
+                id: 12,
+                category: 'Errors: Memòria',
+                question: "Quin error obtindràs si intentes fer `meva_tupla[0] = 'nou valor'`?",
+                options: ["KeyError", "TypeError", "ValueError", "ChaosError"],
+                correct: 1,
+                explanation: "No pots canviar el destí d'una tupla. TypeError!"
+            },
+            {
+                id: 13,
+                category: 'Teoria: Resum',
+                question: "Quina estructura és la millor per representar un objecte amb propietats?",
+                options: ["list", "tuple", "dict", "set"],
+                correct: 2,
+                explanation: "El diccionari és la fitxa oficial de cada personatge!"
+            },
+            {
+                id: 14,
+                category: 'Mètodes: Conjunts',
+                question: "Diferència entre `.remove()` i `.discard()` en un conjunt:",
+                options: ["No hi ha diferència", "Discard no dóna error si no hi és; Remove sí", "Remove és més ràpid", "Discard només números"],
+                correct: 1,
+                explanation: "Discard és un ninja silenciós si no troba l'objectiu."
+            },
+            {
+                id: 15,
+                category: 'Teoria: Llistes',
+                question: "Què fa l'operador 'in' (ex: `'Luffy' in pirates`)?",
+                options: ["Afegeix l'element", "Esborra l'element", "Comprova si l'element existeix", "Canvia el nom"],
+                correct: 2,
+                explanation: "És el teu sentit de detecció ninja!"
+            }
+        ];
+
+        const BackgroundAnime = () => {
+            const speedLinesData = useMemo(() => 
+                [...Array(20)].map(() => ({
+                    left: `${Math.random() * 100}%`,
+                    duration: 0.5 + Math.random(),
+                    delay: Math.random() * 2
+                })), []);
+
+            const symbolsData = useMemo(() => 
+                ['{}', '[]', '()', 'in', 'if', 'for', '=>'].map((sym) => ({
+                    text: sym,
+                    duration: 3 + Math.random() * 4,
+                    delay: Math.random() * 2
+                })), []);
+
+            return (
+                <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+                    <div className="absolute inset-0 opacity-10">
+                        {speedLinesData.map((line, i) => (
+                            <div key={i} className="absolute bg-white" style={{
+                                width: '2px', height: '100vh', left: line.left, top: '-100vh', transform: 'rotate(45deg)',
+                                animationName: 'speedLine', animationDuration: `${line.duration}s`,
+                                animationTimingFunction: 'linear', animationIterationCount: 'infinite', animationDelay: `${line.delay}s`
+                            }} />
+                        ))}
+                    </div>
+                    <div className="absolute inset-0 opacity-20 flex flex-wrap justify-around items-center">
+                        {symbolsData.map((sym, i) => (
+                            <div key={i} className="text-orange-500 font-mono text-6xl font-bold animate-pulse" style={{
+                                animationName: 'float', animationDuration: `${sym.duration}s`,
+                                animationTimingFunction: 'ease-in-out', animationIterationCount: 'infinite', animationDelay: `${sym.delay}s`
+                            }}>
+                                {sym.text}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-orange-600/20 rounded-full blur-[100px] animate-pulse"></div>
+                    <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] animate-pulse"></div>
+                </div>
+            );
+        };
+
+        function App() {
+            const [step, setStep] = useState('home');
+            const [currentQuestion, setCurrentQuestion] = useState(0);
+            const [score, setScore] = useState(0);
+            const [showFeedback, setShowFeedback] = useState(false);
+            const [selectedOption, setSelectedOption] = useState(null);
+
+            const startQuiz = () => {
+                setStep('quiz');
+                setCurrentQuestion(0);
+                setScore(0);
+                setShowFeedback(false);
+                setSelectedOption(null);
+            };
+
+            const handleOptionSelect = (index) => {
+                if (showFeedback) return;
+                setSelectedOption(index);
+                setShowFeedback(true);
+                if (index === QUESTIONS[currentQuestion].correct) {
+                    setScore(s => s + 1);
+                }
+            };
+
+            const nextQuestion = () => {
+                if (currentQuestion + 1 < QUESTIONS.length) {
+                    setCurrentQuestion(c => c + 1);
+                    setShowFeedback(false);
+                    setSelectedOption(null);
+                } else {
+                    setStep('result');
+                }
+            };
+
+            const getRank = () => {
+                const p = (score / QUESTIONS.length) * 100;
+                if (p === 100) return { title: "HOKAGE / REI DELS PIRATES", color: "text-orange-500", desc: "Domini absolut!", icon: <Icon name="Trophy" className="w-20 h-20 text-orange-500 drop-shadow-[0_0_15px_rgba(249,115,22,0.8)]" /> };
+                if (p >= 85) return { title: "JONIN D'ELIT", color: "text-red-500", desc: "Base indestructible.", icon: <Icon name="Flame" className="w-20 h-20 text-red-500" /> };
+                if (p >= 60) return { title: "CHUNIN", color: "text-blue-500", desc: "Bon nivell!", icon: <Icon name="Sword" className="w-20 h-20 text-blue-500" /> };
+                if (p >= 30) return { title: "GENIN", color: "text-green-500", desc: "Segueix entrenant.", icon: <Icon name="Target" className="w-20 h-20 text-green-500" /> };
+                return { title: "ESPERIT MALIGNE", color: "text-purple-600", desc: "Torna a començar...", icon: <Icon name="Skull" className="w-20 h-20 text-purple-600" /> };
+            };
+
+            const progress = ((currentQuestion + 1) / QUESTIONS.length) * 100;
+
+            return (
+                <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden">
+                    <BackgroundAnime />
+                    <div className="relative z-10 w-full flex flex-col items-center">
+                        {step === 'home' && (
+                            <div className="max-w-xl w-full bg-slate-900/80 backdrop-blur-md border-t-4 border-orange-500 rounded-3xl p-10 text-center shadow-2xl border border-slate-800">
+                                <div className="inline-block p-5 bg-orange-500 rounded-full mb-6 shadow-[0_0_25px_rgba(249,115,22,0.5)]">
+                                    <Icon name="BrainCircuit" className="w-14 h-14 text-white" />
+                                </div>
+                                <h1 className="text-5xl font-black mb-4 italic uppercase text-white">Dojo Teòric</h1>
+                                <p className="text-slate-400 mb-8 text-xl">Ascendeix en el rànquing Ninja de Python.</p>
+                                <button onClick={startQuiz} className="w-full bg-orange-600 hover:bg-orange-500 text-white font-black py-5 px-8 rounded-2xl text-2xl transition-all shadow-lg active:scale-95 flex items-center justify-center gap-3">
+                                    ENTRAR AL DOJO <Icon name="ChevronRight" className="w-8 h-8" />
+                                </button>
+                            </div>
+                        )}
+
+                        {step === 'quiz' && (
+                            <div className="max-w-2xl w-full">
+                                <div className="mb-6 flex items-center gap-4 bg-slate-900/60 backdrop-blur-sm p-4 rounded-2xl border border-slate-800 shadow-xl">
+                                    <div className="flex-1 h-4 bg-slate-800 rounded-full overflow-hidden">
+                                        <div className="h-full bg-gradient-to-r from-orange-600 via-yellow-400 to-orange-500 transition-all duration-700 shadow-[0_0_15px_rgba(249,115,22,0.6)]" style={{ width: `${progress}%` }}></div>
+                                    </div>
+                                    <span className="font-mono text-orange-400 font-black text-lg">{currentQuestion + 1}/{QUESTIONS.length}</span>
+                                </div>
+                                <div className="bg-slate-900/90 backdrop-blur-md rounded-3xl border-b-[12px] border-slate-950 p-6 md:p-12 shadow-2xl relative overflow-hidden border border-slate-800">
+                                    <div className="mb-6 flex justify-between items-center">
+                                        <span className="px-4 py-1.5 bg-orange-600/20 border border-orange-500/40 text-orange-400 rounded-lg text-xs font-black uppercase tracking-[0.2em]">{QUESTIONS[currentQuestion].category}</span>
+                                        {showFeedback && <span className={`font-black text-xl italic ${selectedOption === QUESTIONS[currentQuestion].correct ? 'text-green-500' : 'text-red-500'}`}>{selectedOption === QUESTIONS[currentQuestion].correct ? "CRITICAL HIT!" : "MISS!"}</span>}
+                                    </div>
+                                    <h2 className="text-3xl font-extrabold mb-10 text-white leading-tight">{QUESTIONS[currentQuestion].question}</h2>
+                                    <div className="grid gap-4">
+                                        {QUESTIONS[currentQuestion].options.map((option, idx) => {
+                                            let stateClass = "border-slate-800 bg-slate-800/40 hover:border-orange-500 hover:bg-slate-800/80";
+                                            if (showFeedback) {
+                                                if (idx === QUESTIONS[currentQuestion].correct) stateClass = "border-green-500 bg-green-500/10 text-green-300 ring-4 ring-green-500/20";
+                                                else if (idx === selectedOption) stateClass = "border-red-600 bg-red-600/10 text-red-400 ring-4 ring-red-600/20";
+                                                else stateClass = "opacity-30 border-slate-900 grayscale";
+                                            }
+                                            return (
+                                                <button key={idx} onClick={() => handleOptionSelect(idx)} disabled={showFeedback} className={`p-6 rounded-2xl border-2 text-left transition-all font-bold text-lg flex justify-between items-center text-white ${stateClass}`}>
+                                                    <span>{option}</span>
+                                                    {showFeedback && idx === QUESTIONS[currentQuestion].correct && <Icon name="ShieldCheck" className="text-green-500 w-8 h-8" />}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    {showFeedback && (
+                                        <div className="mt-10 animate-in slide-in-from-bottom-6">
+                                            <div className={`p-6 rounded-2xl border-l-8 ${selectedOption === QUESTIONS[currentQuestion].correct ? 'border-green-500 bg-green-500/5' : 'border-blue-500 bg-blue-500/5'} shadow-xl`}>
+                                                <p className="text-lg italic text-white"><span className="font-black text-orange-500 uppercase mr-2">Mestre:</span>{QUESTIONS[currentQuestion].explanation}</p>
+                                            </div>
+                                            <button onClick={nextQuestion} className="w-full mt-8 bg-white text-slate-900 font-black py-5 rounded-2xl flex items-center justify-center gap-2 hover:bg-orange-500 hover:text-white transition-all text-xl">
+                                                {currentQuestion + 1 === QUESTIONS.length ? "FINALITZAR COMBAT" : "PROPERA TÈCNICA"} <Icon name="ChevronRight" className="w-6 h-6" />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="mt-8 flex justify-center">
+                                    <div className="bg-slate-900/80 backdrop-blur-md px-8 py-3 rounded-full border border-slate-800 flex items-center gap-4 shadow-2xl">
+                                        <Icon name="Star" className="w-6 h-6 text-yellow-400 fill-yellow-400 animate-spin-slow" />
+                                        <span className="font-black text-2xl text-white">KI: {score * 100}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {step === 'result' && (
+                            <div className="max-w-xl w-full bg-slate-900/90 backdrop-blur-lg border border-slate-800 rounded-[3rem] p-12 text-center shadow-2xl relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-600 via-yellow-400 to-orange-600 shadow-[0_0_20px_rgba(249,115,22,0.8)]"></div>
+                                <div className="flex justify-center mb-8">
+                                    <div className="p-8 bg-slate-800 rounded-full border-4 border-slate-700 shadow-2xl">{getRank().icon}</div>
+                                </div>
+                                <h2 className="text-sm font-black tracking-[0.5em] text-slate-500 uppercase mb-3">Verdict del Dojo</h2>
+                                <h3 className={`text-5xl font-black mb-6 ${getRank().color} italic`}>{getRank().title}</h3>
+                                <div className="bg-slate-950/50 rounded-3xl p-10 mb-10 border border-slate-800 shadow-inner">
+                                    <div className="text-7xl font-black text-white mb-4">{score} <span className="text-3xl text-slate-600">/ {QUESTIONS.length}</span></div>
+                                    <p className="text-slate-300 text-xl font-medium italic">"{getRank().desc}"</p>
+                                </div>
+                                <button onClick={startQuiz} className="w-full bg-white text-slate-900 font-black py-6 rounded-3xl flex items-center justify-center gap-4 hover:bg-orange-500 hover:text-white transition-all text-2xl">
+                                    <Icon name="RefreshCcw" className="w-7 h-7" /> TORNAR A L'ACADÈMIA
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
