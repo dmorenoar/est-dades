@@ -1,6 +1,14 @@
 # Estructures de Dades en Python 
 
+[![Versió](https://img.shields.io/badge/versió-1.0.0-blue.svg)](https://github.com/dmorenoar/python-codex-smx)
+[![Estat](https://img.shields.io/badge/estat-ONLINE-brightgreen.svg)](https://dmorenoar.github.io/python-codex-smx/)
+
 Arxiu de referència i exemples pràctics sobre les principals estructures de dades en Python.
+
+**Plataforma interactiva d'aprenentatge de teòria d'estructures de dades en Python** 
+
+🌐 **[Fer el test](https://dmorenoar.github.io/est-dades/)**
+
 
 ---
 
