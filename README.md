@@ -1,6 +1,6 @@
 # Estructures de Dades en Python 
 
-Arxiu de referència i exemples pràctics sobre les principals estructures de dades en Python. Creat originalment com a notebook de Google Colab.
+Arxiu de referència i exemples pràctics sobre les principals estructures de dades en Python.
 
 ---
 
